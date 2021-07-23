@@ -1,0 +1,117 @@
+<!doctype html>
+<!-- from https://www.sitepoint.com/a-basic-html5-template/ -->
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Guided Programming: Creating a Producer</title>
+  <meta name="description" content="Guided Producer">
+  <meta name="author" content="Nathan Eloe">
+
+  <meta property="og:title" content="Guided Programming: Creating a Producer">
+  <meta property="og:type" content="website">
+  <meta property="og:description" content="Guided Programming Assignment.">
+
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="jupyter-lab.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel='stylesheet' href='cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack-subset.css'>
+
+
+
+</head>
+
+<body>
+  <!-- your content here... -->
+  <div class='container'>
+    <h1>Guided Programming: Creating a Producer</h1>
+    <h2>44-671: Streaming Data</h2>
+
+    <p>Note: In my experience the Docker application remembers my files between starts and stops, but I cannot guarantee that behavior.
+      If you do not intend on finishing this assignment in a single sitting I recommend downloading your producer notebook (by right clicking on it) just in case it does not persist when you stop your Docker application.</p>
+
+    <ol>
+      <li>Start your Docker application you set up in the Software Installation assignment</li>
+      <li>Open a web browser and open JupyterLab (<a href='http://localhost:8888/lab'>http://localhost:8888/lab</a>)</li>
+      <li>Using the "upload" button (highlighted in yellow in the image below), upload the following files:
+        <img src='upload-btn.PNG' alt='JupyterLab Button Toolbar; upload button is highlighted'>
+        <ul>
+          <li>
+            <code>d3.v4.min.js</code>
+          </li>
+          <li>
+            <code>d3consumer.ipynb</code>
+          </li>
+        </ul>
+      <li>open
+        <code>d3consumer.ipynb</code> and change the name of the RabbitMQ instance to what your instance is called.
+      </li>
+      <li>Create a new Python Notebook named
+        <code>yourname-producer</code> (replace
+        <code>yourname</code> with your name; you can right click on the file in the left pane to rename the file)
+      </li>
+      <li>Create two new cells in your notebook, and write the following code (replace the RabbitMQ instance with your instance name). Use the new cell button to create the cells; don't run the cells just yet:</li>
+
+      <pre><code class='language-python'>import pika
+from random import choice
+import pickle
+from time import sleep
+
+points = [[0.,0.], [1.,0.], [.5, .866]]
+
+# change 'streaming-data_rabbitmq_1' to the name of your rabbitMQ Docker instance
+connection = pika.BlockingConnection(pika.ConnectionParameters('streaming-data_rabbitmq_1'))
+channel = connection.channel()
+channel.queue_declare(queue='gasket')
+
+def nextpt(pt):
+    vr = choice(points)
+    return (pt[0] + vr[0])/2, (pt[1]+vr[1])/2
+
+while(True):
+    channel.basic_publish(exchange='', routing_key='gasket', body=pickle.dumps((pt[0], pt[1])))
+    pt = nextpt(pt)
+    sleep(.01)</code></pre>
+      <pre><code>connection.close()</code></pre>
+
+      <li>Start the consumer; in <code>d3consumer.ipynb</code> select the second code cell (that starts with the comment <code>\#Run this cell</code>) and run it (either with the run button or Ctrl + Enter). Make sure you see a <code>[*]</code> next
+        to the cell; no output should appear yet. If you encounter errors you probably need to fix the RabbitMQ instance name; if there are other errors contact your instructor for help debugging.</li>
+      <li> Once your consumer is running, go back to your other notebook and start your first code cell; there should be no errors; if there are, fix them as above.</li>
+      <li> Go back to the <code>d3consumer.ipynb</code> notebook; You should notice the plot above the consumer code changing.</li>
+      <li> Let your code run for a while; you should see a shape start to appear. Once the shape starts solidify, take a screenshot of the shape.</li>
+      <li> Stop the code by doing the following steps in order:</li>
+      <ol>
+        <li> Open your producer notebook and hit the "stop" button (the square) that is above the notebook (you should see an "error" that says <code>Keyboard Interrupt</code>).</li>
+        <li> Run the second code cell (that contains <code>connection.close()</code>)</li>
+        <li> Open the <code>d3consumer.ipynb</code> notebook and hit the stop button.</li>
+        <li> Run the code cell that contains <code>connection.close()</code></li>
+      </ol>
+      <li> Add a new cell to the bottom of your producer notebook; in the dropdown box above the notebook that says "Code", select "Markdown", and answer the following questions (if you want to format the questions nicely, you can find a good
+        Markdown tutorial at <a href='https://www.markdowntutorial.com/'>https://www.markdowntutorial.com/</a> and a reference at <a
+          href='https://guides.github.com/features/mastering-markdown/'>https://guides.github.com/features/mastering-markdown/</a>):</li>
+      <ul>
+        <li> Your producer was generating <math>(x,y)</math> coordinates that the consumer was plotting; what shape was being create? Hint: you may want to search for the term "chaos game"</li>
+        <li> The first code cell in the producer notebook is what generates the points and adds them to the RabbitMQ; what lines of code would you need to modify to access a live source of data (such as access logs or social media) instead of
+          modifying and generating points?</li>
+        <li> Based on your reading and any understanding of the code you may have, if you wrote another producer that wrote to a different queue, would our consumer take that data?</li>
+        <li> What do you think would happen if we started another producer writing to the same queue?</li>
+      </ul>
+      <li> "Run" your Markdown cell (so it formats nicely)</li>
+    </ol>
+
+    <p>When you are finished, save your notebook and export it as a PDF. Submit both your PDF and screen shot of the shape that was created to the assignment on the course website.
+      You can stop your Docker application while you are not using it to save resources on your computer.</p>
+  </div>
+  <script src='highlight.min.js'></script>
+  <script>
+    hljs.highlightAll();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+</body>
+
+</html>

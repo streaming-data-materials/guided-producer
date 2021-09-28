@@ -72,7 +72,9 @@ def nextpt(pt):
     vr = choice(points)
     return (pt[0] + vr[0])/2, (pt[1]+vr[1])/2
 
-while(True):
+pt =[.1,.1]
+
+while True:
     channel.basic_publish(exchange='', routing_key='gasket', body=pickle.dumps((pt[0], pt[1])))
     pt = nextpt(pt)
     sleep(.01)</code></pre>
